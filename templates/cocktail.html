@@ -1,0 +1,288 @@
+{% extends 'base.html' %}
+{% load static %}
+
+{% block title %}Cocktails{% endblock title %}
+
+{% block styles %}
+<link rel="stylesheet" type="text/css" href="{% static 'css/cocktail.css' %}">
+{% endblock styles %}
+
+{% block content %}
+<div class="container-fluid">
+    <div class="row">
+        <div class="col-8 offset-2">
+            <h2>Cocktails</h2>
+            <!-- 新增cocktail按鈕 -->
+            <button id="btn-modal-create" class="btn btn-outline-secondary fas fa-plus-square" type="button" data-toggle="modal" data-target="#modal-create"></button>
+            <!-- 搜尋列 -->
+            <div id="filter-input-group" class="input-group">
+                <div class="input-group-prepend">
+                    <button id="filter-param" class="btn btn-outline-secondary dropdown-toggle" type="button" data-toggle="dropdown" aria-haspopup="true" aria-expanded="false">Cocktail Name</button>
+                    <div id="filter-param-list" class="dropdown-menu">
+                        <li id="filter-param-alcohol-type" class="dropdown-item">Base</li>
+                        <li id="filter-param-name" class="dropdown-item">Cocktail Name</li>
+                        <li id="filter-param-alcohol" class="dropdown-item">Alcohol Name</li>
+                    </div>
+                </div>
+                <input id="filter-data" type="text" class="form-control" placeholder="Cocktail Name">
+                <div class="input-group-append">
+                    <button id="filter-submit" class="btn btn-outline-secondary fas fa-search" type="button" value="name"></button>
+                </div>
+            </div>
+            <!-- cocktail列表 -->
+            <div id="cocktails-field" class="row">
+                {% for cocktail in cocktails %}
+                <div class="col-3">
+                    <div id="{{cocktail.id}}" class="card">
+                        {% if cocktail.image %}
+                        <img class="card-image-top" src="{{ cocktail.image.url }}">
+                        {% endif %}
+                        <div class="card-body">
+                            <h4 class="card-title">{{ cocktail.name }}</h4>
+                            <p>{% for alcohol in cocktail.alcohols.all %}{{ alcohol.name }} {% endfor %}
+                                {% for attached_material in cocktail.attached_materials.all %}{{ attached_material.name }} {% endfor %}</p>
+                            <button class="btn btn-primary btn-modal-detail" type="button" data-toggle="modal" data-target="#modal-detail" value="{% url 'cocktail-detail' cocktail.id %}">Recipe</ㄖ>
+                        </div>
+                    </div>
+                </div>
+                {% endfor %}
+            </div>
+        </div>
+    </div>
+</div>
+<!-- 新增cocktail表單modal -->
+<div id="modal-create" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Create Cocktail</h4>
+                <button class="close" data-dismiss="modal">
+                    <span aria-hidden="true">&times;</span>
+                </button>
+            </div>
+            <div class="modal-body">
+                <form action="{% url 'index_cocktails' %}" method="POST" enctype="multipart/form-data">
+                    {% csrf_token %}
+                    <div class="form-group row">
+                        <label class="col-2 col-form-label">{{ create_form.name.label }}</label>
+                        <div class="col-10">
+                            {{ create_form.name.errors }}
+                            {{ create_form.name }}
+                        </div>
+                    </div>
+                    <div id="create-form-alcohols-field">
+                        <div class="row form-group">
+                            <label class="col-2 col-form-lable">{{ create_form.alcohol.label }}</label>
+                            <div class="col-4">
+                                {{ create_form.alcohol_type.errors }}
+                                {{ create_form.alcohol_type }}
+                            </div>
+                            <div class="col-4">
+                                {{ create_form.alcohol.errors }}
+                                {{ create_form.alcohol }}
+                            </div>
+                            <div class="col-2">
+                                <button class="btn fas fa-plus-square btn-add-alcohol" type="button"></button>
+                                <button class="btn fas fa-minus-square btn-remove-alcohol" type="button"></button>
+                            </div>
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <label class="col-2 col-form-label">{{ create_form.attached_materials.label }}</label>
+                        <div class="col-10">
+                            {{ create_form.attached_materials.errors }}
+                            {{ create_form.attached_materials }}
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <label class="col-2 col-form-label">{{ create_form.recipe.label }}</label>
+                        <div class="col-10">
+                            {{ create_form.recipe.errors }}
+                            {{ create_form.recipe }}
+                        </div>
+                    </div>
+                    <div class="row form-group">
+                        <label class="col-2 col-form-label">{{ create_form.image.label }}</label>
+                        <div class="col-10">
+                            {{ create_form.image.errors }}
+                            {{ create_form.image }}
+                        </div>
+                    </div>
+                    <button id="create-submit" class="btn btn-primary" type="submit">Submit</button>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+<!-- cocktail資料modal -->
+<div id="modal-detail" class="modal fade" tabindex="-1" aria-hidden="true">
+    <div class="modal-dialog">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h4 class="modal-title">Cocktail Detail</h4>
+            </div>
+            <div class="modal-body">
+                <table class="table table-striped table-borderless">
+                    <tbody>
+                        <tr>
+                            <td>名稱</td>
+                            <td id="detail-name"></td>
+                        </tr>
+                        <tr>
+                            <td>主材料</td>
+                            <td id="detail-alcohols"></td>
+                        </tr>
+                        <tr>
+                            <td>副材料</td>
+                            <td id="detail-attached-materials"></td>
+                        </tr>
+                        <tr>
+                            <td>製作方法</td>
+                            <td id="detail-recipe"></td>
+                        </tr>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+</div>
+{% endblock content %}
+
+{% block scripts %}
+<script>
+    $(document).ready(function(){
+        // 調整圖片高度
+        $("img").each(function(){
+            $(this).height($(this).width() * 0.75);
+        });
+
+        // 搜尋選單變更
+        $("#filter-param-alcohol-type").click(function(){
+            $("#filter-param").text($(this).text());
+            $("#filter-data").val("").prop("placeholder", "Brandy/Gin/Rum/Tequila/Vodka/Whisky");
+            $("#filter-submit").prop("value", "alcohol_type");
+        });
+        $("#filter-param-alcohol").click(function(){
+            $("#filter-param").text($(this).text());
+            $("#filter-data").val("").prop("placeholder", "Alcohol Name");
+            $("#filter-submit").prop("value", "alcohol");
+        });
+        $("#filter-param-name").click(function(){
+            $("#filter-param").text($(this).text());
+            $("#filter-data").val("").prop("placeholder", "Cocktail Name");
+            $("#filter-submit").prop("value", "name");
+        });
+
+        // 搜尋調酒
+        $("#filter-submit").click(function(){
+            let param = $(this).val();
+            let ajax_data = {};
+            if (param == "name") {
+                ajax_data["name"] = $("#filter-data").val();
+            } else if (param == "alcohol") {
+                ajax_data["alcohol"] = $("#filter-data").val();
+            } else {
+                ajax_data["alcohol_type"] = $("#filter-data").val();
+            }
+            $.ajax({
+                url: "{% url 'cocktail-list' %}",
+                type: "GET",
+                data: ajax_data,
+                dataType: "json",
+                success: function(data){
+                    $("#cocktails-field").children(".col-3").hide();
+                    $.each(data, function(ind, val){
+                        $("#" + val["id"]).parent("div").show();
+                    });
+                },
+            });
+        });
+
+        // 新增調酒表單 - 儲存已選擇的酒類
+        let selected_alcohols = [];
+        let update_selected_alcohols = function(){
+            selected_alcohols = [];
+            $("#create-form-alcohols-field").children(".row").each(function(index, elem){
+                selected_alcohols.push($(elem).find("#id_alcohol").val());
+            });
+            console.log(selected_alcohols);
+        };
+        // 新增調酒表單 - 酒類選單選項調整
+        $("#id_alcohol").children("option").hide();
+        $("#id_alcohol").children("option").first().show();
+        $("#create-form-alcohols-field").on("change", "#id_alcohol", function(){
+            update_selected_alcohols();
+        });
+        $("#create-form-alcohols-field").on("change", "#id_alcohol_type", function(){
+            let alcohol_row = $(this).parents(".row");
+            if ($(this).val() == "") {
+                $(alcohol_row).find("#id_alcohol").children("option").hide();
+                $(alcohol_row).find("#id_alcohol").children("option").first().show();
+            } else {
+                $.ajax({
+                    url: "{% url 'alcohol-list' %}",
+                    type: "GET",
+                    data: {search: $(this).val()},
+                    dataType: "json",
+                    success: function(data){
+                        $(alcohol_row).find("#id_alcohol").children("option").hide();
+                        $(alcohol_row).find("#id_alcohol").children("option").first().show();
+                        $.each(data, function(ind, val){
+                            $(alcohol_row).find("#id_alcohol option[value=" + val["id"] + "]").show();
+                        });
+                        $.each(selected_alcohols, function(ind, val){
+                            $(alcohol_row).find("#id_alcohol option[value=" + val + "]").hide();
+                        });
+                    },
+                });
+            }
+        });
+
+        // 新增調酒表單 - 酒類增減按鈕
+        $(".btn-remove-alcohol").hide();
+        $(".btn-add-alcohol").click(function(){
+            let new_alcohol = $(this).parents(".row").clone();
+            $(new_alcohol).find(".btn-add-alcohol").hide();
+            $(new_alcohol).find(".btn-remove-alcohol").show();
+            $(new_alcohol).find("#id_alcohol_type").val("");
+            $(new_alcohol).find("#id_alcohol").children("option").hide();
+            $(new_alcohol).find("#id_alcohol").children("option").first().show();
+            $("#create-form-alcohols-field").append($(new_alcohol));
+        });
+        $("#create-form-alcohols-field").on("click", ".btn-remove-alcohol", function(){
+            $(this).parents(".form-group").remove();
+            update_selected_alcohols();
+        });
+
+        // 如果create form有Error的話顯示彈出視窗
+        if ($("#modal-create").find(".errorlist").length != 0) {
+            console.log($("#modal-create").find(".errorlist"));
+            $("#modal-create").modal();
+        }
+
+        // 顯示detail彈出視窗資料
+        $(".btn-modal-detail").click(function(){
+            let cocktail_url = $(this).val();
+            $.ajax({
+                url: cocktail_url,
+                type: "GET",
+                dataType: "json",
+                success: function(data){
+                    $("#detail-name").text(data["name"]);
+                    $("#detail-recipe").html(data["recipe"].replaceAll("\r\n", "<br>"));
+                    let alcohols_name = "";
+                    $.each(data["alcohols"], function(i, alcohol){
+                        alcohols_name += alcohol["name"] + " ";
+                    });
+                    $("#detail-alcohols").text(alcohols_name);
+                    let attached_materials_name = "";
+                    $.each(data["attached_materials"], function(i, attached_material){
+                        attached_materials_name += attached_material["name"] + " ";
+                    });
+                    $("#detail-attached-materials").text(attached_materials_name);
+                },
+            });
+        });
+    });
+</script>
+{% endblock scripts %}

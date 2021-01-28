@@ -1,0 +1,13 @@
+.card {
+    margin-bottom: 15px;
+}
+
+#btn-modal-create {
+    position: absolute;
+    top: 0;
+    right: 15px;
+}
+
+#filter-input-group {
+    margin-bottom: 15px;
+}
