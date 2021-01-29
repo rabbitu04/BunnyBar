@@ -217,7 +217,7 @@
             let alcohol_row = $(this).parents(".row");
             if ($(this).val() == "") {
                 $(alcohol_row).find("#id_alcohol").children("option").hide();
-                $(alcohol_row).find("#id_alcohol").children("option").first().show();
+                $(alcohol_row).find("#id_alcohol").children("option").first().show().prop("selected", true);
             } else {
                 $.ajax({
                     url: "{% url 'alcohol-list' %}",
@@ -226,7 +226,7 @@
                     dataType: "json",
                     success: function(data){
                         $(alcohol_row).find("#id_alcohol").children("option").hide();
-                        $(alcohol_row).find("#id_alcohol").children("option").first().show();
+                        $(alcohol_row).find("#id_alcohol").children("option").first().show().prop("selected", true);
                         $.each(data, function(ind, val){
                             $(alcohol_row).find("#id_alcohol option[value=" + val["id"] + "]").show();
                         });

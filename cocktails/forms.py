@@ -3,24 +3,25 @@ from cocktails.models import Alcohol, AttachedMaterial, ALCOHOL_TYPES
 from django import forms
 from django.core.exceptions import ValidationError
 
-DEFAULT_OPTION = [(None, 'Select')]
+
+class NameModelChoiceField(forms.ModelChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
+
+
+class NameModelMultipleChoiceField(forms.ModelMultipleChoiceField):
+    def label_from_instance(self, obj):
+        return obj.name
 
 
 class CocktailCreateForm(forms.Form):
-    alcohols = Alcohol.objects.all()
-    ALCOHOLS = [(alcohol.id, alcohol.name) for alcohol in alcohols]
-
-    attached_materials = AttachedMaterial.objects.all()
-    ATTACHED_MATERIALS = [(attached_material.id, attached_material.name)
-                          for attached_material in attached_materials]
-
     name = forms.CharField(label='Name', max_length=100, required=True)
     alcohol_type = forms.ChoiceField(
-        required=True, choices=DEFAULT_OPTION + ALCOHOL_TYPES)
-    alcohol = forms.ChoiceField(
-        required=True, choices=DEFAULT_OPTION + ALCOHOLS)
-    attached_materials = forms.MultipleChoiceField(
-        required=False, choices=ATTACHED_MATERIALS)
+        required=True, choices=[(None, 'Select')] + ALCOHOL_TYPES)
+    alcohol = NameModelChoiceField(
+        required=True, empty_label='Select', queryset=Alcohol.objects.all())
+    attached_materials = NameModelMultipleChoiceField(
+        required=False, queryset=AttachedMaterial.objects.all())
     recipe = forms.CharField(
         max_length=200, widget=forms.Textarea(attrs={'rows': 8, }))
     image = forms.ImageField(required=True)
