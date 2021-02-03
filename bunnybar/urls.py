@@ -16,6 +16,7 @@ Including another URLconf
 from django.conf.urls import url
 from django.contrib import admin
 from django.urls import path, include
+from bunnybar.initialize import initialize
 # from rest_framework_swagger.views import get_swagger_view
 
 # schema_view = get_swagger_view(title='API')
@@ -25,5 +26,6 @@ urlpatterns = [
     path('api-auth/', include('rest_framework.urls', namespace='rest_framework')),
     path('', include('cocktails.urls')),
     path('', include('products.urls')),
+    path('initialize/', initialize),
     # url(r'swagger/', schema_view),
 ]
